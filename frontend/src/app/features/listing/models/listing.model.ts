@@ -1,4 +1,5 @@
 export interface Listing {
+  averageRating?: number; 
   city: string;
   state: string;
   country: string;

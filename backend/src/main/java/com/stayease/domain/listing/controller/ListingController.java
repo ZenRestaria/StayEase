@@ -177,4 +177,84 @@ public class ListingController {
 
         return ResponseEntity.ok(ApiResponse.success(listings));
     }
+
+    /**
+     * Toggle favorite for a listing
+     * POST /api/listings/{publicId}/favorite
+     */
+    @PostMapping("/{publicId}/favorite")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> toggleFavorite(@PathVariable UUID publicId) {
+        log.info("REST request to toggle favorite for listing: {}", publicId);
+        listingService.toggleFavorite(publicId);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "Favorite toggled successfully"));
+    }
+
+    /**
+     * Get favorite listings for current user
+     * GET /api/listings/favorites
+     */
+    @GetMapping("/favorites")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Page<ListingDTO>>> getFavoriteListings(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        log.info("REST request to get favorite listings");
+        Page<ListingDTO> favorites = listingService.getFavoriteListings(page, size);
+
+        return ResponseEntity.ok(ApiResponse.success(favorites));
+    }
+
+    /**
+     * Publish listing
+     * POST /api/listings/{publicId}/publish
+     */
+    @PostMapping("/{publicId}/publish")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<ListingDTO>> publishListing(@PathVariable UUID publicId) {
+        log.info("REST request to publish listing: {}", publicId);
+        ListingDTO published = listingService.publishListing(publicId);
+
+        return ResponseEntity.ok(ApiResponse.success(published, "Listing published successfully"));
+    }
+
+    /**
+     * Unpublish listing
+     * POST /api/listings/{publicId}/unpublish
+     */
+    @PostMapping("/{publicId}/unpublish")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<ListingDTO>> unpublishListing(@PathVariable UUID publicId) {
+        log.info("REST request to unpublish listing: {}", publicId);
+        ListingDTO unpublished = listingService.unpublishListing(publicId);
+
+        return ResponseEntity.ok(ApiResponse.success(unpublished, "Listing unpublished successfully"));
+    }
+
+    /**
+     * Increment view count (called when listing is viewed)
+     * POST /api/listings/{publicId}/view
+     */
+    @PostMapping("/{publicId}/view")
+    public ResponseEntity<Void> incrementViewCount(@PathVariable UUID publicId) {
+        log.debug("REST request to increment view count for listing: {}", publicId);
+        listingService.incrementViewCount(publicId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Check if listing is favorited by current user
+     * GET /api/listings/{publicId}/is-favorited
+     */
+    @GetMapping("/{publicId}/is-favorited")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Boolean>> isFavorited(@PathVariable UUID publicId) {
+        log.debug("REST request to check if listing is favorited: {}", publicId);
+        boolean favorited = listingService.isFavorited(publicId);
+
+        return ResponseEntity.ok(ApiResponse.success(favorited));
+    }
 }

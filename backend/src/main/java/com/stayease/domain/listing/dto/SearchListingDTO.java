@@ -35,6 +35,7 @@ public class SearchListingDTO {
     // Property filters
     private String propertyType;
     private String roomType;
+    private String category;  // Added category field
     
     // Capacity filters
     private Integer minBedrooms;

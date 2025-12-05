@@ -1,13 +1,17 @@
 package com.stayease.domain.listing.service;
 
 import com.stayease.domain.listing.dto.*;
+import com.stayease.domain.listing.entity.FavoriteListing;
 import com.stayease.domain.listing.entity.Listing;
 import com.stayease.domain.listing.entity.ListingImage;
+import com.stayease.domain.listing.repository.FavoriteListingRepository;
 import com.stayease.domain.listing.repository.ListingImageRepository;
 import com.stayease.domain.listing.repository.ListingRepository;
+import com.stayease.exception.ConflictException;
 import com.stayease.exception.ForbiddenException;
 import com.stayease.exception.NotFoundException;
 import com.stayease.security.SecurityUtils;
+import com.stayease.shared.constant.ListingStatus;
 import com.stayease.shared.mapper.ListingMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +19,9 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +31,7 @@ public class ListingService {
 
     private final ListingRepository listingRepository;
     private final ListingImageRepository listingImageRepository;
+    private final FavoriteListingRepository favoriteListingRepository;
     private final ListingMapper listingMapper;
     private final SecurityUtils securityUtils;
 
@@ -40,6 +47,7 @@ public class ListingService {
         // Convert DTO to Entity
         Listing listing = listingMapper.toEntity(createDTO);
         listing.setLandlordPublicId(currentUserPublicId);
+        listing.setStatus(ListingStatus.DRAFT);
 
         // Save listing first
         Listing savedListing = listingRepository.save(listing);
@@ -50,7 +58,10 @@ public class ListingService {
             for (CreateListingImageDTO imageDTO : createDTO.getImages()) {
                 ListingImage image = listingMapper.toImageEntity(imageDTO);
                 image.setListing(savedListing);
-                image.setSortOrder(order++);
+                image.setDisplayOrder(order++);
+                if (order == 1 && imageDTO.getIsPrimary() == null) {
+                    image.setIsPrimary(true);
+                }
                 savedListing.addImage(image);
             }
             savedListing = listingRepository.save(savedListing);
@@ -101,7 +112,8 @@ public class ListingService {
                 ListingImage image = ListingImage.builder()
                         .url(imageDTO.getUrl())
                         .caption(imageDTO.getCaption())
-                        .sortOrder(order++)
+                        .displayOrder(order++)
+                        .isPrimary(order == 1 || (imageDTO.getIsPrimary() != null && imageDTO.getIsPrimary()))
                         .build();
                 listing.addImage(image);
             }
@@ -160,9 +172,9 @@ public class ListingService {
                     pageable
             );
         }
-        // Default: get all listings
+        // Default: get all active listings
         else {
-            listingsPage = listingRepository.findAll(pageable);
+            listingsPage = listingRepository.findAllActiveListings(pageable);
         }
 
         return listingsPage.map(listingMapper::toDTO);
@@ -176,7 +188,7 @@ public class ListingService {
         log.info("Fetching all listings");
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Listing> listingsPage = listingRepository.findAll(pageable);
+        Page<Listing> listingsPage = listingRepository.findAllActiveListings(pageable);
 
         return listingsPage.map(listingMapper::toDTO);
     }
@@ -222,6 +234,140 @@ public class ListingService {
         return listingsPage.map(listingMapper::toDTO);
     }
 
+    /**
+     * Toggle favorite for a listing
+     */
+    public void toggleFavorite(UUID publicId) {
+        log.info("Toggling favorite for listing: {}", publicId);
+
+        UUID currentUserPublicId = securityUtils.getCurrentUserPublicId();
+        
+        // Check if listing exists
+        Listing listing = listingRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("Listing not found"));
+
+        // Check if already favorited
+        if (favoriteListingRepository.existsByUserPublicIdAndListingPublicId(currentUserPublicId, publicId)) {
+            // Remove favorite
+            favoriteListingRepository.deleteByUserPublicIdAndListingPublicId(currentUserPublicId, publicId);
+            listing.decrementFavoriteCount();
+            log.info("Removed favorite for listing: {}", publicId);
+        } else {
+            // Add favorite
+            FavoriteListing favorite = FavoriteListing.builder()
+                    .userPublicId(currentUserPublicId)
+                    .listingPublicId(publicId)
+                    .build();
+            favoriteListingRepository.save(favorite);
+            listing.incrementFavoriteCount();
+            log.info("Added favorite for listing: {}", publicId);
+        }
+        
+        listingRepository.save(listing);
+    }
+
+    /**
+     * Get favorite listings for current user
+     */
+    @Transactional(readOnly = true)
+    public Page<ListingDTO> getFavoriteListings(int page, int size) {
+        log.info("Fetching favorite listings for current user");
+
+        UUID currentUserPublicId = securityUtils.getCurrentUserPublicId();
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<FavoriteListing> favoritesPage = favoriteListingRepository.findByUserPublicId(currentUserPublicId, pageable);
+        
+        List<UUID> listingIds = favoritesPage.getContent().stream()
+                .map(FavoriteListing::getListingPublicId)
+                .collect(Collectors.toList());
+
+        List<Listing> listings = listingRepository.findAllById(
+                listingIds.stream()
+                        .map(id -> listingRepository.findByPublicId(id)
+                                .map(Listing::getId)
+                                .orElse(null))
+                        .filter(id -> id != null)
+                        .collect(Collectors.toList())
+        );
+
+        List<ListingDTO> listingDTOs = listings.stream()
+                .map(listingMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(listingDTOs, pageable, favoritesPage.getTotalElements());
+    }
+
+    /**
+     * Publish listing
+     */
+    public ListingDTO publishListing(UUID publicId) {
+        log.info("Publishing listing: {}", publicId);
+
+        Listing listing = listingRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("Listing not found"));
+
+        // Check ownership
+        UUID currentUserPublicId = securityUtils.getCurrentUserPublicId();
+        if (!listing.getLandlordPublicId().equals(currentUserPublicId)) {
+            throw new ForbiddenException("You don't have permission to publish this listing");
+        }
+
+        listing.publish();
+        Listing published = listingRepository.save(listing);
+
+        log.info("Listing published successfully: {}", publicId);
+        return listingMapper.toDTO(published);
+    }
+
+    /**
+     * Unpublish listing
+     */
+    public ListingDTO unpublishListing(UUID publicId) {
+        log.info("Unpublishing listing: {}", publicId);
+
+        Listing listing = listingRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("Listing not found"));
+
+        // Check ownership
+        UUID currentUserPublicId = securityUtils.getCurrentUserPublicId();
+        if (!listing.getLandlordPublicId().equals(currentUserPublicId)) {
+            throw new ForbiddenException("You don't have permission to unpublish this listing");
+        }
+
+        listing.unpublish();
+        Listing unpublished = listingRepository.save(listing);
+
+        log.info("Listing unpublished successfully: {}", publicId);
+        return listingMapper.toDTO(unpublished);
+    }
+
+    /**
+     * Increment view count
+     */
+    public void incrementViewCount(UUID publicId) {
+        log.debug("Incrementing view count for listing: {}", publicId);
+
+        Listing listing = listingRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("Listing not found"));
+
+        listing.incrementViewCount();
+        listingRepository.save(listing);
+    }
+
+    /**
+     * Check if user has favorited a listing
+     */
+    @Transactional(readOnly = true)
+    public boolean isFavorited(UUID publicId) {
+        try {
+            UUID currentUserPublicId = securityUtils.getCurrentUserPublicId();
+            return favoriteListingRepository.existsByUserPublicIdAndListingPublicId(currentUserPublicId, publicId);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     // Helper methods
 
     private Pageable createPageable(SearchListingDTO searchDTO) {
@@ -240,6 +386,12 @@ public class ListingService {
                     break;
                 case "newest":
                     sort = Sort.by("createdAt").descending();
+                    break;
+                case "rating":
+                    sort = Sort.by("averageRating").descending();
+                    break;
+                case "popular":
+                    sort = Sort.by("viewCount").descending();
                     break;
             }
         }

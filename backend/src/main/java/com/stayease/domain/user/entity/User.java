@@ -76,6 +76,16 @@ public class User {
         authorities.removeIf(ua -> ua.getAuthority().equals(authority));
     }
 
+    // Method for Spring Security integration
+    public String getPassword() {
+        return this.passwordHash;
+    }
+
+    // Method to get authorities for Spring Security
+    public Set<UserAuthority> getUserAuthorities() {
+        return this.authorities;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

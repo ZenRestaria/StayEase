@@ -29,7 +29,7 @@ public class UserPrincipal implements UserDetails {
                 .collect(Collectors.toList());
 
         return new UserPrincipal(
-                user.getId(),
+                user.getPublicId(),  // Changed from user.getId() to user.getPublicId()
                 user.getEmail(),
                 user.getPassword(),
                 authorities
