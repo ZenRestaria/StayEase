@@ -3,35 +3,36 @@ package com.stayease.security;
 import com.stayease.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class UserPrincipal implements UserDetails {
 
-    private UUID publicId;
+    private UUID id;
     private String email;
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
-    private boolean enabled;
 
     public static UserPrincipal create(User user) {
-        Collection<GrantedAuthority> authorities = user.getAuthorities().stream()
+        List<GrantedAuthority> authorities = user.getUserAuthorities().stream()
                 .map(ua -> new SimpleGrantedAuthority(ua.getAuthority().getName()))
                 .collect(Collectors.toList());
 
         return new UserPrincipal(
-                user.getPublicId(),
+                user.getId(),
                 user.getEmail(),
-                user.getPasswordHash(),
-                authorities,
-                user.getVerified()
+                user.getPassword(),
+                authorities
         );
     }
 
@@ -67,6 +68,6 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return enabled;
+        return true;
     }
 }

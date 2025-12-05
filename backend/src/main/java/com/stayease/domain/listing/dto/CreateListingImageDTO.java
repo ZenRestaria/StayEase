@@ -1,23 +1,21 @@
 package com.stayease.domain.listing.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.ZonedDateTime;
-import java.util.UUID;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ListingImageDTO {
+public class CreateListingImageDTO {
     
-    private UUID id;
+    @NotBlank(message = "Image URL is required")
     private String imageUrl;
+    
     private Boolean isPrimary;
     private Integer displayOrder;
     private String caption;
-    private ZonedDateTime createdAt;
 }

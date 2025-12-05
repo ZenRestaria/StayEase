@@ -1,15 +1,14 @@
 package com.stayease.domain.listing.entity;
 
+import com.stayease.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.time.ZonedDateTime;
+import java.util.*;
 
 @Entity
 @Table(name = "listing")
@@ -31,51 +30,55 @@ public class Listing {
     @Column(name = "landlord_public_id", nullable = false)
     private UUID landlordPublicId;
 
-    @Column(name = "title", nullable = false)
+    // For eager loading landlord info (optional)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "landlord_public_id", referencedColumnName = "public_id", insertable = false, updatable = false)
+    private User landlord;
+
+    @Column(nullable = false)
     private String title;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "location", nullable = false)
+    @Column(nullable = false)
     private String location;
 
-    @Column(name = "price", nullable = false, precision = 12, scale = 2)
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
-    @Column(name = "currency", nullable = false, length = 10)
-    @Builder.Default
+    @Column(nullable = false, length = 10)
     private String currency = "USD";
 
-    @Column(name = "guests", nullable = false)
+    @Column(nullable = false)
     private Integer guests;
 
-    @Column(name = "bedrooms", nullable = false)
+    @Column(nullable = false)
     private Integer bedrooms;
 
-    @Column(name = "beds", nullable = false)
+    @Column(nullable = false)
     private Integer beds;
 
-    @Column(name = "bathrooms", nullable = false)
+    @Column(nullable = false)
     private Integer bathrooms;
 
-    @Column(name = "category", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String category;
 
-    @Column(name = "rules", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String rules;
+
+    @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("sortOrder ASC")
+    private List<ListingImage> images = new ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    private ZonedDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
-
-    @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<ListingImage> images = new ArrayList<>();
+    private ZonedDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
@@ -84,6 +87,7 @@ public class Listing {
         }
     }
 
+    // Helper methods
     public void addImage(ListingImage image) {
         images.add(image);
         image.setListing(this);
@@ -92,18 +96,5 @@ public class Listing {
     public void removeImage(ListingImage image) {
         images.remove(image);
         image.setListing(null);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Listing)) return false;
-        Listing listing = (Listing) o;
-        return publicId != null && publicId.equals(listing.publicId);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
     }
 }

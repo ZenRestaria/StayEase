@@ -1,85 +1,56 @@
 package com.stayease.security;
 
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-public final class SecurityUtils {
+@Component
+public class SecurityUtils {
 
-    private SecurityUtils() {
-        // Utility class
-    }
-
-    public static Optional<String> getCurrentUserLogin() {
+    /**
+     * Get the current authenticated user's ID
+     */
+    public UUID getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
         if (authentication == null || !authentication.isAuthenticated()) {
-            return Optional.empty();
+            throw new IllegalStateException("No authenticated user found");
         }
-
-        if (authentication.getPrincipal() instanceof Jwt jwt) {
-            return Optional.ofNullable(jwt.getClaimAsString("email"));
+        
+        Object principal = authentication.getPrincipal();
+        
+        if (principal instanceof UserPrincipal) {
+            return ((UserPrincipal) principal).getId();
         }
-
-        return Optional.ofNullable(authentication.getName());
+        
+        throw new IllegalStateException("Invalid principal type");
     }
 
-    public static Optional<UUID> getCurrentUserPublicId() {
+    /**
+     * Get the current authenticated user's email
+     */
+    public String getCurrentUserEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
         if (authentication == null || !authentication.isAuthenticated()) {
-            return Optional.empty();
+            return null;
         }
-
-        if (authentication.getPrincipal() instanceof Jwt jwt) {
-            String publicIdStr = jwt.getClaimAsString("sub");
-            try {
-                return Optional.of(UUID.fromString(publicIdStr));
-            } catch (IllegalArgumentException e) {
-                return Optional.empty();
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    public static Optional<Jwt> getCurrentJwt() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return Optional.empty();
-        }
-
-        if (authentication.getPrincipal() instanceof Jwt jwt) {
-            return Optional.of(jwt);
-        }
-
-        return Optional.empty();
-    }
-
-    public static Set<String> getCurrentUserAuthorities() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
         
-        if (authentication == null) {
-            return Set.of();
+        if (principal instanceof UserPrincipal) {
+            return ((UserPrincipal) principal).getEmail();
         }
-
-        return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toSet());
+        
+        return null;
     }
 
-    public static boolean hasAuthority(String authority) {
-        return getCurrentUserAuthorities().contains(authority);
-    }
-
-    public static boolean isAuthenticated() {
+    /**
+     * Check if current user is authenticated
+     */
+    public boolean isAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null && authentication.isAuthenticated();
     }

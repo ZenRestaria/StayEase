@@ -61,7 +61,7 @@ stayease/
 │       │   │       │   │       ├── UpdateListingDTO.java
 │       │   │       │   │       ├── ListingImageDTO.java
 │       │   │       │   │       └── SearchListingDTO.java
-│       │   │       │   │
+│       │   │       │   │           
 │       │   │       │   ├── booking/
 │       │   │       │   │   ├── entity/
 │       │   │       │   │   │   ├── Booking.java
@@ -274,7 +274,6 @@ stayease/
     └── src/
         ├── main.ts
         ├── index.html
-        ├── styles.scss
         │
         ├── environments/
         │   ├── environment.ts
@@ -286,7 +285,6 @@ stayease/
             ├── app.routes.ts
             ├── app.component.ts
             ├── app.component.html
-            ├── app.component.scss
             │
             ├── core/
             │   ├── auth/
@@ -312,17 +310,14 @@ stayease/
             │   ├── home/
             │   │   ├── home.component.ts
             │   │   ├── home.component.html
-            │   │   └── home.component.scss
             │   │
             │   ├── auth/
             │   │   ├── login/
             │   │   │   ├── login.component.ts
             │   │   │   ├── login.component.html
-            │   │   │   └── login.component.scss
             │   │   └── register/
             │   │       ├── register.component.ts
             │   │       ├── register.component.html
-            │   │       └── register.component.scss
             │   │
             │   ├── listing/
             │   │   ├── services/
@@ -333,19 +328,15 @@ stayease/
             │   │   ├── listing-search/
             │   │   │   ├── listing-search.component.ts
             │   │   │   ├── listing-search.component.html
-            │   │   │   └── listing-search.component.scss
             │   │   ├── listing-detail/
             │   │   │   ├── listing-detail.component.ts
             │   │   │   ├── listing-detail.component.html
-            │   │   │   └── listing-detail.component.scss
             │   │   ├── listing-create/
             │   │   │   ├── listing-create.component.ts
             │   │   │   ├── listing-create.component.html
-            │   │   │   └── listing-create.component.scss
             │   │   └── listing-card/
             │   │       ├── listing-card.component.ts
             │   │       ├── listing-card.component.html
-            │   │       └── listing-card.component.scss
             │   │
             │   ├── booking/
             │   │   ├── services/
@@ -355,15 +346,12 @@ stayease/
             │   │   ├── booking-create/
             │   │   │   ├── booking-create.component.ts
             │   │   │   ├── booking-create.component.html
-            │   │   │   └── booking-create.component.scss
             │   │   ├── booking-list/
             │   │   │   ├── booking-list.component.ts
             │   │   │   ├── booking-list.component.html
-            │   │   │   └── booking-list.component.scss
             │   │   └── booking-detail/
             │   │       ├── booking-detail.component.ts
             │   │       ├── booking-detail.component.html
-            │   │       └── booking-detail.component.scss
             │   │
             │   ├── service-offering/
             │   │   ├── services/
@@ -375,15 +363,12 @@ stayease/
             │   │   ├── service-list/
             │   │   │   ├── service-list.component.ts
             │   │   │   ├── service-list.component.html
-            │   │   │   └── service-list.component.scss
             │   │   ├── service-detail/
             │   │   │   ├── service-detail.component.ts
             │   │   │   ├── service-detail.component.html
-            │   │   │   └── service-detail.component.scss
             │   │   └── service-create/
             │   │       ├── service-create.component.ts
             │   │       ├── service-create.component.html
-            │   │       └── service-create.component.scss
             │   │
             │   ├── payment/
             │   │   ├── services/
@@ -393,11 +378,9 @@ stayease/
             │   │   ├── payment-form/
             │   │   │   ├── payment-form.component.ts
             │   │   │   ├── payment-form.component.html
-            │   │   │   └── payment-form.component.scss
             │   │   └── payment-success/
             │   │       ├── payment-success.component.ts
             │   │       ├── payment-success.component.html
-            │   │       └── payment-success.component.scss
             │   │
             │   ├── review/
             │   │   ├── services/
@@ -407,11 +390,9 @@ stayease/
             │   │   ├── review-list/
             │   │   │   ├── review-list.component.ts
             │   │   │   ├── review-list.component.html
-            │   │   │   └── review-list.component.scss
             │   │   └── review-form/
             │   │       ├── review-form.component.ts
             │   │       ├── review-form.component.html
-            │   │       └── review-form.component.scss
             │   │
             │   ├── chat/
             │   │   ├── services/
@@ -423,25 +404,20 @@ stayease/
             │   │   ├── conversation-list/
             │   │   │   ├── conversation-list.component.ts
             │   │   │   ├── conversation-list.component.html
-            │   │   │   └── conversation-list.component.scss
             │   │   └── chat-window/
             │   │       ├── chat-window.component.ts
             │   │       ├── chat-window.component.html
-            │   │       └── chat-window.component.scss
             │   │
             │   ├── profile/
             │   │   ├── profile-view/
             │   │   │   ├── profile-view.component.ts
             │   │   │   ├── profile-view.component.html
-            │   │   │   └── profile-view.component.scss
             │   │   ├── profile-edit/
             │   │   │   ├── profile-edit.component.ts
             │   │   │   ├── profile-edit.component.html
-            │   │   │   └── profile-edit.component.scss
             │   │   └── my-listings/
             │   │       ├── my-listings.component.ts
             │   │       ├── my-listings.component.html
-            │   │       └── my-listings.component.scss
             │   │
             │   └── admin/
             │       ├── services/
@@ -449,42 +425,33 @@ stayease/
             │       ├── admin-dashboard/
             │       │   ├── admin-dashboard.component.ts
             │       │   ├── admin-dashboard.component.html
-            │       │   └── admin-dashboard.component.scss
             │       ├── user-management/
             │       │   ├── user-management.component.ts
             │       │   ├── user-management.component.html
-            │       │   └── user-management.component.scss
             │       └── audit-log/
             │           ├── audit-log.component.ts
             │           ├── audit-log.component.html
-            │           └── audit-log.component.scss
             │
             ├── shared/
             │   ├── components/
             │   │   ├── header/
             │   │   │   ├── header.component.ts
             │   │   │   ├── header.component.html
-            │   │   │   └── header.component.scss
             │   │   ├── footer/
             │   │   │   ├── footer.component.ts
             │   │   │   ├── footer.component.html
-            │   │   │   └── footer.component.scss
             │   │   ├── loading-spinner/
             │   │   │   ├── loading-spinner.component.ts
             │   │   │   ├── loading-spinner.component.html
-            │   │   │   └── loading-spinner.component.scss
             │   │   ├── error-message/
             │   │   │   ├── error-message.component.ts
             │   │   │   ├── error-message.component.html
-            │   │   │   └── error-message.component.scss
             │   │   ├── image-upload/
             │   │   │   ├── image-upload.component.ts
             │   │   │   ├── image-upload.component.html
-            │   │   │   └── image-upload.component.scss
             │   │   └── date-picker/
             │   │       ├── date-picker.component.ts
             │   │       ├── date-picker.component.html
-            │   │       └── date-picker.component.scss
             │   ├── directives/
             │   │   ├── lazy-load-image.directive.ts
             │   │   └── click-outside.directive.ts
@@ -500,8 +467,6 @@ stayease/
                 ├── main-layout/
                 │   ├── main-layout.component.ts
                 │   ├── main-layout.component.html
-                │   └── main-layout.component.scss
                 └── admin-layout/
                     ├── admin-layout.component.ts
                     ├── admin-layout.component.html
-                    └── admin-layout.component.scss

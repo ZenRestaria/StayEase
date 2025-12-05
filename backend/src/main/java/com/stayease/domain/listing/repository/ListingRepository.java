@@ -1,43 +1,40 @@
 package com.stayease.domain.listing.repository;
 
-import com.stayease.domain.listing.entity.Listing;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.stayease.domain.listing.entity.ListingImage;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ListingRepository extends JpaRepository<Listing, Long> {
+public interface ListingImageRepository extends JpaRepository<ListingImage, UUID> {
 
-    Optional<Listing> findByPublicId(UUID publicId);
+    // Find all images for a listing
+    List<ListingImage> findByListingIdOrderByDisplayOrderAsc(UUID listingId);
 
-    @Query("SELECT l FROM Listing l LEFT JOIN FETCH l.images WHERE l.publicId = :publicId")
-    Optional<Listing> findByPublicIdWithImages(@Param("publicId") UUID publicId);
+    // Find primary image for a listing
+    Optional<ListingImage> findByListingIdAndIsPrimaryTrue(UUID listingId);
 
-    @Query("SELECT l FROM Listing l WHERE l.landlordPublicId = :landlordPublicId")
-    Page<Listing> findByLandlordPublicId(@Param("landlordPublicId") UUID landlordPublicId, Pageable pageable);
+    // Delete all images for a listing
+    @Modifying
+    @Query("DELETE FROM ListingImage li WHERE li.listing.id = :listingId")
+    void deleteByListingId(@Param("listingId") UUID listingId);
 
-    @Query("SELECT l FROM Listing l WHERE " +
-           "(:location IS NULL OR LOWER(l.location) LIKE LOWER(CONCAT('%', :location, '%'))) AND " +
-           "(:category IS NULL OR l.category = :category) AND " +
-           "(:minPrice IS NULL OR l.price >= :minPrice) AND " +
-           "(:maxPrice IS NULL OR l.price <= :maxPrice) AND " +
-           "(:guests IS NULL OR l.guests >= :guests)")
-    Page<Listing> searchListings(
-            @Param("location") String location,
-            @Param("category") String category,
-            @Param("minPrice") BigDecimal minPrice,
-            @Param("maxPrice") BigDecimal maxPrice,
-            @Param("guests") Integer guests,
-            Pageable pageable);
+    // Update display order
+    @Modifying
+    @Query("UPDATE ListingImage li SET li.displayOrder = :order WHERE li.id = :imageId")
+    void updateDisplayOrder(@Param("imageId") UUID imageId, @Param("order") Integer order);
 
-    @Query("SELECT DISTINCT l.category FROM Listing l ORDER BY l.category")
-    List<String> findAllCategories();
+    // Set primary image (unset others first)
+    @Modifying
+    @Query("UPDATE ListingImage li SET li.isPrimary = false WHERE li.listing.id = :listingId")
+    void unsetPrimaryForListing(@Param("listingId") UUID listingId);
+
+    // Count images for a listing
+    long countByListingId(UUID listingId);
 }
