@@ -19,12 +19,10 @@ export class ListingService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/listings`;
 
-  getAllListings(page = 0, size = 20, sortBy = 'createdAt', sortDirection = 'DESC'): Observable<Page<Listing>> {
+  getAllListings(page = 0, size = 20): Observable<Page<Listing>> {
     const params = new HttpParams()
       .set('page', page.toString())
-      .set('size', size.toString())
-      .set('sortBy', sortBy)
-      .set('sortDirection', sortDirection);
+      .set('size', size.toString());
 
     return this.http.get<ApiResponse<Page<Listing>>>(this.apiUrl, { params })
       .pipe(map(response => response.data));
@@ -36,7 +34,33 @@ export class ListingService {
   }
 
   searchListings(searchCriteria: SearchListing): Observable<Page<Listing>> {
-    return this.http.post<ApiResponse<Page<Listing>>>(`${this.apiUrl}/search`, searchCriteria)
+    // Build query parameters from search criteria
+    let params = new HttpParams();
+    
+    if (searchCriteria.location) {
+      params = params.set('location', searchCriteria.location);
+    }
+    if (searchCriteria.category) {
+      params = params.set('category', searchCriteria.category);
+    }
+    if (searchCriteria.minPrice !== undefined) {
+      params = params.set('minPrice', searchCriteria.minPrice.toString());
+    }
+    if (searchCriteria.maxPrice !== undefined) {
+      params = params.set('maxPrice', searchCriteria.maxPrice.toString());
+    }
+    if (searchCriteria.guests !== undefined) {
+      params = params.set('guests', searchCriteria.guests.toString());
+    }
+    if (searchCriteria.sortBy) {
+      params = params.set('sortBy', searchCriteria.sortBy);
+    }
+    
+    // Pagination
+    params = params.set('page', (searchCriteria.page || 0).toString());
+    params = params.set('size', (searchCriteria.size || 20).toString());
+
+    return this.http.get<ApiResponse<Page<Listing>>>(`${this.apiUrl}/search`, { params })
       .pipe(map(response => response.data));
   }
 
@@ -65,7 +89,10 @@ export class ListingService {
   }
 
   getAllCategories(): Observable<string[]> {
-    return this.http.get<ApiResponse<string[]>>(`${this.apiUrl}/categories`)
-      .pipe(map(response => response.data));
+    // For now, return hardcoded categories since backend endpoint doesn't exist
+    return new Observable(observer => {
+      observer.next(['Entire homes', 'Apartments', 'Villas', 'Unique stays', 'Beachfront']);
+      observer.complete();
+    });
   }
 }

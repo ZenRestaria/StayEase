@@ -2,7 +2,7 @@ spring:
   application:
     name: stayease
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   
   datasource:
     url: jdbc:postgresql://localhost:5432/stayease_db
@@ -40,15 +40,24 @@ spring:
       enabled: true
       max-file-size: 10MB
       max-request-size: 15MB
+  
   web:
     error:
       include-message: always
       include-binding-errors: always
       include-stacktrace: on_param
       include-exception: false
+  
+  # OAuth2 Configuration (Disabled for now - uncomment when ready)
+  # security:
+  #   oauth2:
+  #     resourceserver:
+  #       jwt:
+  #         issuer-uri: https://your-tenant.auth0.com/
 
 server:
   port: 8080
+
 logging:
   level:
     root: INFO

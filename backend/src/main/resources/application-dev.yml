@@ -1,8 +1,11 @@
+# application-dev.yml
+# DO NOT set spring.profiles.active here - it's already set in application.yml
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/stayease_db
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    username: postgres
+    password: Shinei-Nouzen
   
   jpa:
     show-sql: true

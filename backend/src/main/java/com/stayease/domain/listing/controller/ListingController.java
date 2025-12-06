@@ -82,38 +82,39 @@ public class ListingController {
         return ResponseEntity.ok(ApiResponse.success(null, "Listing deleted successfully"));
     }
 
-    /**
-     * Search listings with filters
-     * GET /api/listings/search
-     */
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<ListingDTO>>> searchListings(
-            @RequestParam(required = false) String location,
-            @RequestParam(required = false) Integer guests,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+/**
+ * Search listings with filters
+ * GET /api/listings/search
+ */
+@GetMapping("/search")
+public ResponseEntity<ApiResponse<Page<ListingDTO>>> searchListings(
+        @RequestParam(required = false) String location,
+        @RequestParam(required = false) Integer guests,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) BigDecimal minPrice,
+        @RequestParam(required = false) BigDecimal maxPrice,
+        @RequestParam(required = false) String sortBy,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size) {
 
-        log.info("REST request to search listings - location: {}, guests: {}", location, guests);
+    log.info("REST request to search listings - location: {}, guests: {}, category: {}", 
+             location, guests, category);
 
-        SearchListingDTO searchDTO = SearchListingDTO.builder()
-                .location(location)
-                .guests(guests)
-                .category(category)
-                .minPrice(minPrice)
-                .maxPrice(maxPrice)
-                .sortBy(sortBy)
-                .page(page)
-                .size(size)
-                .build();
+    SearchListingDTO searchDTO = SearchListingDTO.builder()
+            .location(location)
+            .guests(guests)
+            .category(category)
+            .minPrice(minPrice)
+            .maxPrice(maxPrice)
+            .sortBy(sortBy)
+            .page(page)
+            .size(size)
+            .build();
 
-        Page<ListingDTO> results = listingService.searchListings(searchDTO);
+    Page<ListingDTO> results = listingService.searchListings(searchDTO);
 
-        return ResponseEntity.ok(ApiResponse.success(results));
-    }
+    return ResponseEntity.ok(ApiResponse.success(results));
+}
 
     /**
      * Get all listings
